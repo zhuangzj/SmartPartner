@@ -2,9 +2,19 @@ import pandas as pd
 import SmartPartner.code.general_micro.utility as utility
 
 def main():
-    #general01, coding01, general05, coding05, general07, coding07 = general_test('D:/PycharmProjects/SmartPartner/data/general_test/math/')
+    general01, coding01, general05, coding05, general07, coding07 = general_test('D:/PycharmProjects/SmartPartner/data/general_test/math/')
     micro1, coding1, micro2, coding2, micro3, coding3, micro4, coding4, micro5, coding5 = micro_test('D:/PycharmProjects/SmartPartner/data/micro_test/math/')
-    print(coding3)
+    print(general01.head())
+    # 平均得分率
+    avg_general01 = utility.avg_score(general01, coding01)
+    avg_general05 = utility.avg_score(general05, coding05)
+    avg_general07 = utility.avg_score(general07, coding07)
+    avg_micro1 = utility.avg_score(micro1, coding1)
+    avg_micro2 = utility.avg_score(micro2, coding2)
+    avg_micro3 = utility.avg_score(micro3, coding3)
+    avg_micro4 = utility.avg_score(micro4, coding4)
+    avg_micro5 = utility.avg_score(micro5, coding5)
+
 
 def general_test(file_path):
     # read data
@@ -17,6 +27,8 @@ def general_test(file_path):
     df01 = clean_general_test(0, 31, df01)
     df05 = clean_general_test(0, 29, df05)
     df07 = clean_general_test(0, 38, df07)
+        # 将201701最后三个编码从数字转成文本
+    df01.columns.values[-3:] = list(map(lambda x: '0' + str(x), df01.columns[-3:]))
         # get coding useful data
     coding01 = utility.clean_new_form_coding(coding01)
     coding05 = utility.clean_new_form_coding(coding05)
@@ -47,11 +59,11 @@ def micro_test(file_path):
 
     # clean data
         # add data & tidy data
-    df1 = clean_micro_test(df1, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-001（分式1）-date.xlsx')
-    df2 = clean_micro_test(df2, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-002（分式2）-date.xlsx')
-    df3 = clean_micro_test(df3, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-001（二次根式1）-date.xlsx')
-    df4 = clean_micro_test(df4, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-002（二次根式2）-date.xlsx')
-    df5 = clean_micro_test(df5, file_path + '/with-date/2016-数学-八年级-下学期-单元微测-001（变量之间的关系）-date.xlsx')
+    df1 = clean_micro_test(df1, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-001（分式1）-date.xlsx', 'normal')
+    df2 = clean_micro_test(df2, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-002（分式2）-date.xlsx', 'normal')
+    df3 = clean_micro_test(df3, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-001（二次根式1）-date.xlsx', 'normal')
+    df4 = clean_micro_test(df4, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-002（二次根式2）-date.xlsx', 'abnormal')
+    df5 = clean_micro_test(df5, file_path + '/with-date/2016-数学-八年级-下学期-单元微测-001（变量之间的关系）-date.xlsx', 'normal')
 
     coding1 = utility.clean_new_form_coding(coding1)
     coding2 = utility.clean_new_form_coding(coding2)
@@ -66,7 +78,7 @@ def read_data_from_micro_test(filename):
     coding = pd.read_excel(filename, sheetname=2, skiprows=1)
     return df, coding
 
-def clean_micro_test(df, filename_date):
+def clean_micro_test(df, filename_date, q_code_subtract_way):
     # add test date
     df = utility.add_date(df, filename_date)
     # tidy data
@@ -74,6 +86,13 @@ def clean_micro_test(df, filename_date):
     df.drop('性别', axis=1, inplace=True)
     df.rename(columns={'学号': '教育ID'}, inplace=True)
     df.set_index(['教育ID', '姓名'], inplace=True)
+    if q_code_subtract_way == 'normal':
+        df.columns.values[:-1] = list(map(lambda x: x[1:-2], df.columns[:-1]))
+    else: # 有的微测如micro4编码表对应的编码不是P之后的六位数值，而是P之后的四位数值加上后两位数值
+        df.columns.values[:-1] = list(map(lambda x: x[1:5] + x[-2:], df.columns[:-1]))
+        print(df)
     return df
+
+
 
 if __name__ == "__main__": main()
