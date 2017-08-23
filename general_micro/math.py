@@ -1,10 +1,17 @@
 import pandas as pd
 import SmartPartner.code.general_micro.utility as utility
+from scipy.stats import pearsonr
+import numpy as np
+from scipy.stats import norm
+import matplotlib.pyplot as plt
+from matplotlib import font_manager
+chinesefont = font_manager.FontProperties()
+chinesefont.set_family('SimHei')
 
 def main():
     general01, coding01, general05, coding05, general07, coding07 = general_test('D:/PycharmProjects/SmartPartner/data/general_test/math/')
     micro1, coding1, micro2, coding2, micro3, coding3, micro4, coding4, micro5, coding5 = micro_test('D:/PycharmProjects/SmartPartner/data/micro_test/math/')
-    print(general01.head())
+
     # 平均得分率
     avg_general01 = utility.avg_score(general01, coding01)
     avg_general05 = utility.avg_score(general05, coding05)
@@ -15,6 +22,34 @@ def main():
     avg_micro4 = utility.avg_score(micro4, coding4)
     avg_micro5 = utility.avg_score(micro5, coding5)
 
+    # 相关性分析
+        # 测试总分来做相关
+    concept_general01 = replace_q_code_with_concept(general01, coding01)
+    concept_general05 = replace_q_code_with_concept(general05, coding05)
+    concept_general07 = replace_q_code_with_concept(general07, coding07)
+            # 201701在分式概念的总分和分式微测1的总分做相关性分析
+    corr_gener01_mic1, p_val_gener01_mic1 = corr_analysis(concept_general01, '分式', micro1, 'general-micro')
+            # 201701在分式概念的总分和分式微测2的总分做相关性分析
+    corr_gener01_mic2, p_val_gener01_mic2 = corr_analysis(concept_general01, '分式', micro2, 'general-micro')
+            # 201701在二次根式概念的总分和二次根式微测1的总分做相关性分析
+    corr_gener01_mic3, p_val_gener01_mic3 = corr_analysis(concept_general01, '二次根式', micro3, 'general-micro')
+            # 201701在二次根式概念的总分和二次根式微测2的总分做相关性分析
+    corr_gener01_mic4, p_val_gener01_mic4 = corr_analysis(concept_general01, '二次根式', micro4, 'general-micro')
+            # 201705在二次根式概念的总分和二次根式微测1的总分做相关性分析
+    corr_gener05_mic3, p_val_gener05_mic3 = corr_analysis(concept_general05, '二次根式', micro3, 'general-micro')
+            # 201705在二次根式概念的总分和二次根式微测2的总分做相关性分析
+    corr_gener05_mic4, p_val_gener05_mic4 = corr_analysis(concept_general05, '二次根式', micro4, 'general-micro')
+            # 201705在二次根式概念的总分和二次根式微测2的总分做相关性分析
+    corr_gener07_mic5, p_val_gener07_mic5 = corr_analysis(concept_general07, '变量之间的关系', micro5, 'general-micro')
+
+        # 微测和总测同一概念的同一能力水平做相关性分析
+#    corr_analysis()
+        # 微测与微测间的相关性分析；等级分；做斯皮尔曼分析
+            # 分式1和分式2的测试总分做斯皮尔曼相关性分析
+    corr_mic1_mic2, p_val_mic1_mic2 = corr_analysis(micro1, '分式', micro2, 'micro-micro')
+    corr_mic3_mic4, p_val_mic3_mic4 = corr_analysis(micro3, '二次根式', micro4, 'micro-micro')
+    print(corr_mic3_mic4)
+    print(p_val_mic3_mic4)
 
 def general_test(file_path):
     # read data
@@ -90,9 +125,60 @@ def clean_micro_test(df, filename_date, q_code_subtract_way):
         df.columns.values[:-1] = list(map(lambda x: x[1:-2], df.columns[:-1]))
     else: # 有的微测如micro4编码表对应的编码不是P之后的六位数值，而是P之后的四位数值加上后两位数值
         df.columns.values[:-1] = list(map(lambda x: x[1:5] + x[-2:], df.columns[:-1]))
-        print(df)
     return df
 
+# 微测间的相关性分析
+def micro_micro_correlation(micro_x, micro_y):
+    x = get_total_score(micro_x, 0, len(micro_x.columns)-1)
+    y = get_total_score(micro_y, 0, len(micro_y.columns)-1)
+    corr, p_value = spearmanr(x, y)
+    return corr, p_value
 
+# 总测与微测间的相关性分析
+def corr_analysis(df_x, concept, df_y, objs):
+    if objs == 'general-micro':
+        series_x = get_concept_total_score(df_x, concept)
+        series_y = get_total_score(df_y, 0, len(df_y.columns)-1)
+    elif objs == 'micro-micro':
+        series_x = get_total_score(df_x, 0, len(df_x.columns) - 1)
+        series_y = get_total_score(df_y, 0, len(df_y.columns) - 1)
+    df = pd.merge(series_x.to_frame(), series_y.to_frame(), left_index=True, right_index=True) # 两测试都参加的学生
+    x = df.iloc[:, 0]
+    y = df.iloc[:, 1]
+    corr, p_value = pearsonr(x, y)
+    return corr, p_value
+
+# 计算总分（微测或总测）
+def get_total_score(df, col_start, col_end):
+    df['总分'] = df.iloc[:, col_start:col_end].sum(axis=1)
+    return df['总分']
+
+def replace_q_code_with_concept(general, coding):
+    copy_df = general.copy(deep=True)
+    copy_df.columns = list(map(lambda x: coding.loc[x]['核心概念'], general.columns))
+    return copy_df
+
+def get_concept_total_score(df_concept, concept):
+    grouped = df_concept.groupby(df_concept.columns, axis=1)
+    df = grouped.sum()
+    return df[concept]
+
+
+def normal_distribution(df, test_name, bins):
+    data = get_total_score(df)
+    # Fit a normal distribution to the data:
+    mu, std = norm.fit(data)
+
+    # Plot the histogram.
+    plt.hist(data, bins=bins, normed=True, alpha=0.6, color='g')
+
+    # Plot the PDF.
+    xmin, xmax = plt.xlim()
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu, std)
+    plt.plot(x, p, 'k', linewidth=2)
+    title = test_name + ': $\mu = %.1f$,  $\sigma = %.2f$' % (mu, std)
+    plt.title(title, fontproperties=chinesefont)
+    plt.show()
 
 if __name__ == "__main__": main()

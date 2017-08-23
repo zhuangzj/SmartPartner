@@ -45,9 +45,9 @@ def add_date(df, filename_date):
 
 # 平均得分率
 def avg_score(score_df, code_df):
-    print(score_df)
-    for colname, col in score_df.iteritems():
+    copy_df = score_df.copy(deep=True)
+    for colname, col in copy_df.iteritems():
         if colname != '作答日期':
             score = code_df.loc[colname]['总分']
-            score_df[colname] = score_df[colname].map(lambda x: x / int(score))
-    return score_df
+            copy_df[colname] = copy_df[colname].map(lambda x: x / int(score))
+    return copy_df
