@@ -22,46 +22,11 @@ def main():
     avg_micro4 = utility.avg_score(micro4, coding4)
     avg_micro5 = utility.avg_score(micro5, coding5)
 
-    # 难度分析
-    concept_avg_general01 = replace_q_code_with_concept(avg_general01, coding01)
-    concept_avg_general05 = replace_q_code_with_concept(avg_general05, coding05)
-    concept_avg_general07 = replace_q_code_with_concept(avg_general07, coding07)
-        # 分式的测试难度
-    fraction_difficulty = tests_difficulty([{'name':'总测-201701', 'content': concept_avg_general01, 'type': 'general'},
-                                            {'name':'微测-分式1', 'content': avg_micro1, 'type': 'micro'},
-                                            {'name': '微测-分式2', 'content': avg_micro2, 'type': 'micro'}], '分式')
-        # 二次根式的测试难度
-    quadratic_difficulty = tests_difficulty([{'name':'总测-201701', 'content': concept_avg_general01, 'type': 'general'},
-                                             {'name': '总测-201705', 'content': concept_avg_general05, 'type': 'general'},
-                                             {'name':'微测-二次根式1', 'content': avg_micro3, 'type': 'micro'},
-                                             {'name': '微测-二次根式2', 'content': avg_micro4, 'type': 'micro'}], '二次根式')
-        # 变量之间的关系的测试难度
-    vars_corr_difficulty = tests_difficulty([{'name':'总测-201707', 'content': concept_avg_general07, 'type': 'general'},
-                                             {'name':'微测-变量之间的关系', 'content': avg_micro5, 'type': 'micro'}], '变量之间的关系')
-
+    # 试卷难度分析
+    test_difficulty_analysis(avg_general01, coding01, avg_general05, coding05, avg_general07, coding07, avg_micro1, avg_micro2, avg_micro3, avg_micro4, avg_micro5)
     # 相关性分析
-        # 测试总分来做相关
-    # concept_general01 = replace_q_code_with_concept(general01, coding01)
-    # concept_general05 = replace_q_code_with_concept(general05, coding05)
-    # concept_general07 = replace_q_code_with_concept(general07, coding07)
-    #         # 201701在分式概念的总分和分式微测1的总分做相关性分析
-    # corr_gener01_mic1, p_val_gener01_mic1 = corr_analysis(concept_general01, '分式', micro1, 'general-micro')
-    #         # 201701在分式概念的总分和分式微测2的总分做相关性分析
-    # corr_gener01_mic2, p_val_gener01_mic2 = corr_analysis(concept_general01, '分式', micro2, 'general-micro')
-    #         # 201701在二次根式概念的总分和二次根式微测1的总分做相关性分析
-    # corr_gener01_mic3, p_val_gener01_mic3 = corr_analysis(concept_general01, '二次根式', micro3, 'general-micro')
-    #         # 201701在二次根式概念的总分和二次根式微测2的总分做相关性分析
-    # corr_gener01_mic4, p_val_gener01_mic4 = corr_analysis(concept_general01, '二次根式', micro4, 'general-micro')
-    #         # 201705在二次根式概念的总分和二次根式微测1的总分做相关性分析
-    # corr_gener05_mic3, p_val_gener05_mic3 = corr_analysis(concept_general05, '二次根式', micro3, 'general-micro')
-    #         # 201705在二次根式概念的总分和二次根式微测2的总分做相关性分析
-    # corr_gener05_mic4, p_val_gener05_mic4 = corr_analysis(concept_general05, '二次根式', micro4, 'general-micro')
-    #         # 201705在二次根式概念的总分和二次根式微测2的总分做相关性分析
-    # corr_gener07_mic5, p_val_gener07_mic5 = corr_analysis(concept_general07, '变量之间的关系', micro5, 'general-micro')
-        # 微测和总测同一概念的同一能力水平做相关性分析
-        # 微测与微测间的相关性分析；等级分；斯皮尔曼分析
-    # corr_mic1_mic2, p_val_mic1_mic2 = corr_analysis(micro1, '分式', micro2, 'micro-micro')
-    # corr_mic3_mic4, p_val_mic3_mic4 = corr_analysis(micro3, '二次根式', micro4, 'micro-micro')
+    #correlation_analysis(general01, coding01, general05, coding05, general07, coding07, micro1, micro2, micro3, micro4, micro5)
+
 
 
 def general_test(file_path):
@@ -78,9 +43,7 @@ def general_test(file_path):
         # 将201701最后三个编码从数字转成文本
     df01.columns.values[-3:] = list(map(lambda x: '0' + str(x), df01.columns[-3:]))
         # get coding useful data
-    coding01 = utility.clean_new_form_coding(coding01)
-    coding05 = utility.clean_new_form_coding(coding05)
-    coding07 = utility.clean_new_form_coding(coding07)
+    coding01, coding05, coding07 = utility.clean_new_form_coding([coding01, coding05, coding07])
 
     return df01, coding01, df05, coding05, df07, coding07
 
@@ -113,11 +76,9 @@ def micro_test(file_path):
     df4 = clean_micro_test(df4, file_path + '/with-date/2016-数学-八年级-上学期-单元微测-002（二次根式2）-date.xlsx', 'abnormal')
     df5 = clean_micro_test(df5, file_path + '/with-date/2016-数学-八年级-下学期-单元微测-001（变量之间的关系）-date.xlsx', 'normal')
 
-    coding1 = utility.clean_new_form_coding(coding1)
-    coding2 = utility.clean_new_form_coding(coding2)
+    coding1, coding2, coding5  = utility.clean_new_form_coding([coding1, coding2, coding5])
     coding3 = utility.clean_old_form_coding(coding3)
     coding4 = utility.clean_old_form_coding(coding4)
-    coding5 = utility.clean_new_form_coding(coding5)
 
     return df1, coding1, df2, coding2, df3, coding3, df4, coding4, df5, coding5
 
@@ -181,13 +142,15 @@ def tests_difficulty(test_list, concept):
 
     tests_name = []
     tests_difficulty = []
+    qestions_difficulty = []
     for test in test_list:
         tests_name.append(test['name'])
-        t_difficulty = test_difficulty(test['content'], test['type'], concept)
+        t_difficulty, q_difficulties = test_difficulty(test['content'], test['type'], concept)
         tests_difficulty.append(t_difficulty)
+        qestions_difficulty.append({'name':test['name'], 'q_difficulty':q_difficulties})
 
     df = pd.DataFrame(tests_difficulty, index=tests_name, columns=['难度'])
-    return df
+    return df, qestions_difficulty
 
 # 一个测试的难度
 def test_difficulty(test, test_type, concept):
@@ -203,7 +166,72 @@ def test_difficulty(test, test_type, concept):
     else:
         t_difficulty = q_difficulties # 总测可能只有一题是该核心概念的题
 
-    return t_difficulty
+    return t_difficulty, q_difficulties
+
+def test_difficulty_analysis(avg_general01, coding01, avg_general05, coding05, avg_general07, coding07, avg_micro1, avg_micro2, avg_micro3, avg_micro4, avg_micro5):
+    # 难度分析
+    concept_avg_general01 = replace_q_code_with_concept(avg_general01, coding01)
+    concept_avg_general05 = replace_q_code_with_concept(avg_general05, coding05)
+    concept_avg_general07 = replace_q_code_with_concept(avg_general07, coding07)
+        # 分式的测试难度
+    fraction_difficulty, fraction_questions_difficulty = tests_difficulty([{'name':'总测-201701', 'content': concept_avg_general01, 'type': 'general'},
+                                            {'name':'微测-分式1', 'content': avg_micro1, 'type': 'micro'},
+                                            {'name': '微测-分式2', 'content': avg_micro2, 'type': 'micro'}], '分式')
+    output_questions_difficulty(fraction_questions_difficulty, '分式')
+    #utility.plot_bar_chart(fraction_difficulty, '分式')
+        # 二次根式的测试难度
+    quadratic_difficulty, quadratic_questions_difficulty = tests_difficulty([{'name':'总测-201701', 'content': concept_avg_general01, 'type': 'general'},
+                                             {'name': '总测-201705', 'content': concept_avg_general05, 'type': 'general'},
+                                             {'name':'微测-二次根式1', 'content': avg_micro3, 'type': 'micro'},
+                                             {'name': '微测-二次根式2', 'content': avg_micro4, 'type': 'micro'}], '二次根式')
+    output_questions_difficulty(quadratic_questions_difficulty, '二次根式')
+    #utility.plot_bar_chart(quadratic_difficulty, '二次根式')
+        # 变量之间的关系的测试难度
+    vars_corr_difficulty, vars_corr_questions_difficulty = tests_difficulty([{'name':'总测-201707', 'content': concept_avg_general07, 'type': 'general'},
+                                             {'name':'微测-变量之间的关系', 'content': avg_micro5, 'type': 'micro'}], '变量之间的关系')
+    output_questions_difficulty(vars_corr_questions_difficulty, '变量之间的关系')
+    #utility.plot_bar_chart(vars_corr_difficulty, '变量之间的关系')
+
+def correlation_analysis(general01, coding01, general05, coding05, general07, coding07, micro1, micro2, micro3, micro4, micro5):
+    # 相关性分析
+        # 测试总分来做相关
+    concept_general01 = replace_q_code_with_concept(general01, coding01)
+    concept_general05 = replace_q_code_with_concept(general05, coding05)
+    concept_general07 = replace_q_code_with_concept(general07, coding07)
+            # 201701在分式概念的总分和分式微测1的总分做相关性分析
+    corr_gener01_mic1, p_val_gener01_mic1 = corr_analysis(concept_general01, '分式', micro1, 'general-micro')
+            # 201701在分式概念的总分和分式微测2的总分做相关性分析
+    corr_gener01_mic2, p_val_gener01_mic2 = corr_analysis(concept_general01, '分式', micro2, 'general-micro')
+            # 201701在二次根式概念的总分和二次根式微测1的总分做相关性分析
+    corr_gener01_mic3, p_val_gener01_mic3 = corr_analysis(concept_general01, '二次根式', micro3, 'general-micro')
+            # 201701在二次根式概念的总分和二次根式微测2的总分做相关性分析
+    corr_gener01_mic4, p_val_gener01_mic4 = corr_analysis(concept_general01, '二次根式', micro4, 'general-micro')
+            # 201705在二次根式概念的总分和二次根式微测1的总分做相关性分析
+    corr_gener05_mic3, p_val_gener05_mic3 = corr_analysis(concept_general05, '二次根式', micro3, 'general-micro')
+            # 201705在二次根式概念的总分和二次根式微测2的总分做相关性分析
+    corr_gener05_mic4, p_val_gener05_mic4 = corr_analysis(concept_general05, '二次根式', micro4, 'general-micro')
+            # 201705在二次根式概念的总分和二次根式微测2的总分做相关性分析
+    corr_gener07_mic5, p_val_gener07_mic5 = corr_analysis(concept_general07, '变量之间的关系', micro5, 'general-micro')
+        #微测和总测同一概念的同一能力水平做相关性分析
+        #微测与微测间的相关性分析；等级分；斯皮尔曼分析
+    corr_mic1_mic2, p_val_mic1_mic2 = corr_analysis(micro1, '分式', micro2, 'micro-micro')
+    corr_mic3_mic4, p_val_mic3_mic4 = corr_analysis(micro3, '二次根式', micro4, 'micro-micro')
+
+# 试卷间的题目做ttest检验
+#def ttest(questions_difficulty__list):
+def output_questions_difficulty(obj_list, filename):
+    index = []
+    data = []
+    for obj in obj_list:
+        index.append(obj['name'])
+        difficulties = obj['q_difficulty']
+        if isinstance(difficulties, pd.Series):
+            difficulties = difficulties.tolist()
+        else: # 该核心概念只有一题
+            difficulties = [difficulties]
+        data.append(difficulties)
+    df = pd.DataFrame(data, index=index)
+    df.to_csv('D:/PycharmProjects/SmartPartner/data/output/q_difficulty_'+filename+'.csv')
 
 # 测试的正太分布情况
 def normal_distribution(df, test_name, bins):
