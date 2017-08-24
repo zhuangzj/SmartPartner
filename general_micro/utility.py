@@ -14,15 +14,21 @@ def clean_new_form_coding(coding_list):
 
     coding_columns = ['题目编码', '得分点编码', '一级主题代码', '一级主题', '二级主题代码', '二级主题', '核心概念代码', '核心概念', '学习表现指标代码', '学习表现指标',
                       '核心素养代码', '核心素养', '内容属性代码', '内容属性', '熟悉度代码', '熟悉度', '间接度代码', '间接度', '评分标准']
-    for coding in codings:
+    coding_columns_with_ablity_level = list(coding_columns)
+    coding_columns_with_ablity_level.append('能力水平')
+
+
+    for i, coding in enumerate(codings):
         if len(coding.columns) == 20:
-            coding_columns.append('能力水平')
-        coding.columns = coding_columns
+            coding.columns = coding_columns_with_ablity_level
+        else:
+            coding.columns = coding_columns
         coding = coding[['题目编码', '学习表现指标代码', '核心概念', '核心素养', '评分标准']]
         coding['题目编码'] = coding['题目编码'].map(lambda x: '0' + str(x))
         coding['评分标准'] = coding['评分标准'].map(lambda x: get_score(x))
         coding.rename(columns={'评分标准': '总分'}, inplace=True)
         coding.set_index(['题目编码'], inplace=True)
+        codings[i] = coding
 
     return codings
 
