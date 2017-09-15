@@ -16,34 +16,36 @@ outputDir = 'D:/PycharmProjects/SmartPartner/output/'
 preparedDataDir = 'D:/PycharmProjects/SmartPartner/preparedData/'
 
 def main():
+    # 每处理出一个新的数据格式可以输出保存
     preparedMathData(mathGeneralDir, mathMicroDir, preparedDataDir)
 
 def preparedMathData(mathGeneralDir, mathMicroDir, preparedDataDir):
     # math
     general01, coding01, general05, coding05, general07, coding07 = math.general_test(mathGeneralDir)
-    general_first = get_stu_concept_ability(general01, coding01)
-    general_second = get_stu_concept_ability(general05, coding05)
-    general_third = get_stu_concept_ability(general07, coding07)
-    for i, general in enumerate([general_first, general_second, general_third]):
-        if i == 0:
-            df = general
-        else:
-            df = pd.merge(df, general, on=['教育ID', '核心概念', '学习表现指标代码'], how='outer')
-        # print(df)
-    updated_df = update_concept_ability_score(df)
-    print(pd.pivot_table(updated_df, index=['核心概念', '学习表现指标代码'], columns=['教育ID'], values='final_score'))
-    # concept_ability(general01, coding01)
+
+
     # scoring_avg(general01, coding01, '201701数学总测得分率分布情况')
     # scoring_avg(general05, coding05, '201705数学总测得分率分布情况')
     # scoring_avg(general07, coding07, '201707数学总测得分率分布情况')
-    # micro1, coding1, micro2, coding2, micro3, coding3, micro4, coding4, micro5, coding5 = micro_test(mathMicroDir)
-    #
-    # micro1 = selectEarliestMicroRecords(micro1)
-    # micro2 = selectEarliestMicroRecords(micro2)
-    # micro3 = selectEarliestMicroRecords(micro3)
-    # micro4 = selectEarliestMicroRecords(micro4)
-    # micro5 = selectEarliestMicroRecords(micro5)
+    micro1, coding1, micro2, coding2, micro3, coding3, micro4, coding4, micro5, coding5 = micro_test(mathMicroDir)
 
+    # 选取第一次做的微测记录
+    micro1 = selectEarliestMicroRecords(micro1)
+    micro2 = selectEarliestMicroRecords(micro2)
+    micro3 = selectEarliestMicroRecords(micro3)
+    micro4 = selectEarliestMicroRecords(micro4)
+    micro5 = selectEarliestMicroRecords(micro5)
+
+    # 历次总测更新后的得分率
+    mutil_general = update_concept_ability([{'test': general01, 'coding': coding01}, {'test': general05, 'coding': coding05},{'test': general07, 'coding': coding07}])
+    # 历次微测更新后的得分率
+    mutil_mircro = update_micro_concept_ability([{'test': micro1, 'coding': coding1, 'concept': '分式'}, {'test': micro2, 'coding': coding2, 'concept': '分式'},
+                                  {'test': micro3, 'coding': coding3, 'concept': '二次根式'},{'test': micro4, 'coding': coding4, 'concept': '二次根式'},
+                                  {'test': micro5, 'coding': coding5, 'concept': '变量之间的关系'}])
+    # 总测微测融合
+    merged_df = merge_general_micro(mutil_general, mutil_mircro)
+
+    # 时间维度上的比较
     # general01_fraction_total_score_avg = cal_concept_total_score_avg_scoing(general01, coding01, '分式')
     # general_score_comparison(general01_fraction_total_score_avg, '201701', [micro1, micro2], '分式', '2017-01-14',
     #                                     '2017-01-16')
@@ -57,10 +59,12 @@ def preparedMathData(mathGeneralDir, mathMicroDir, preparedDataDir):
     # general_score_comparison(general07_varcorr_total_score_avg, '201707', [micro5], '变量之间的关系', '2017-07-05', '2017-07-07')
 
     # general01, coding01, general05, coding05 = biology.general_test(biologyGeneralDir)
+    # mutil_general = update_concept_ability([{'test': general01, 'coding': coding01}, {'test': general05, 'coding': coding05}])
+
     # scoring_avg(general01, coding01, '201701生物总测得分率分布情况')
     # scoring_avg(general05, coding05, '201705生物总测得分率分布情况')
     # micro1, coding1, micro2, coding2, micro3, coding3, micro4, coding4, micro5, coding5, micro6, coding6, micro7, coding7, micro8, coding8, micro9, coding9, micro10, coding10 = micro_test_biology(biologyMicroDir)
-    #
+
     # micro1 = selectEarliestMicroRecords(micro1)
     # micro2 = selectEarliestMicroRecords(micro2)
     # micro3 = selectEarliestMicroRecords(micro3)
@@ -71,6 +75,19 @@ def preparedMathData(mathGeneralDir, mathMicroDir, preparedDataDir):
     # micro8 = selectEarliestMicroRecords(micro8)
     # micro9 = selectEarliestMicroRecords(micro9)
     # micro10 = selectEarliestMicroRecords(micro10)
+
+    # mutil_mircro = update_micro_concept_ability([{'test': micro1, 'coding': coding1, 'concept': '动物的运动和行为'},
+    #                                              {'test': micro2, 'coding': coding2, 'concept': '生物的起源与进化'},
+    #                                              {'test': micro3, 'coding': coding3, 'concept': '生物的起源与进化'},
+    #                                              {'test': micro4, 'coding': coding4, 'concept': '生物的起源与进化'},
+    #                                              {'test': micro5, 'coding': coding5, 'concept': '生物的生殖和发育'},
+    #                                              {'test': micro6, 'coding': coding6, 'concept': '生物的生殖和发育'},
+    #                                              {'test': micro7, 'coding': coding7, 'concept': '生物的生殖和发育'},
+    #                                              {'test': micro8, 'coding': coding8, 'concept': '生物的遗传和变异'},
+    #                                              {'test': micro9, 'coding': coding9, 'concept': '生物的遗传和变异'},
+    #                                              {'test': micro10, 'coding': coding10, 'concept': '生物的遗传和变异'}])
+
+    # merged_df = merge_general_micro(mutil_general, mutil_mircro)
 
     # 时间维度上的比较
     # general01_behavior_total_score_avg = cal_concept_total_score_avg_scoing(general01, coding01, '动物的运动和行为')
@@ -97,7 +114,40 @@ def preparedMathData(mathGeneralDir, mathMicroDir, preparedDataDir):
     # scoring([general01_behavior_total_score_avg, micro1_total_score_avg], '动物的运动和行为')
     # scoring([general01_origin_total_score_avg, micro2_total_score_avg, micro3_total_score_avg, micro4_total_score_avg], '生物的起源与进化')
 
+# 总测微测融合
+def merge_general_micro(mutil_general, mutil_micro):
+    # 打印微测
+    # mutil_micro.to_csv(preparedDataDir + 'mutil_micro_math.csv')
+    # mutil_micro_grouped = mutil_micro.groupby('核心概念').mean()
+    # mutil_micro_grouped.to_csv(preparedDataDir + 'mutil_micro_grouped_math.csv')
 
+    # 打印总测
+    # mutil_general.to_csv(preparedDataDir + 'mutil_general_biology.csv')
+    # mutil_general_grouped = mutil_general.groupby('核心概念').mean()
+    # mutil_general_grouped.to_csv(preparedDataDir + 'mutil_general_grouped_biology.csv')
+
+    mixed_df = mutil_general.append(mutil_micro)
+    merged_df = mixed_df.groupby(['教育ID', '核心概念']).apply(cal_general_micro_mix_score)
+    merged_df = merged_df[['A', 'B', 'C']]
+    merged_df.reset_index(inplace=True)
+    merged_general_micro = merged_df[['教育ID', '核心概念', 'A', 'B', 'C']]
+
+    # 打印总测微测融合
+    # merged_general_micro.to_csv(preparedDataDir + 'merged_general_micro_biology.csv')
+    # grouped = merged_general_micro.groupby('核心概念').mean()
+    # grouped.to_csv(preparedDataDir + 'merged_general_micro_grouped_biology.csv')
+
+# 微测总测融合得分率的计算（两行，一行是总测，一行是微测）
+def cal_general_micro_mix_score(frame):
+    if len(frame) == 1:
+        return frame
+
+    df = frame.tail(1)
+
+    df['A'] = frame['A'].sum() / frame['A'].count()
+    df['B'] = frame['B'].sum() / frame['B'].count()
+    df['C'] = frame['C'].sum() / frame['C'].count()
+    return df
 
 # 筛选有用数据（数学学科）
 def get_useful_data(col_start, col_end, df):
@@ -121,16 +171,22 @@ def micro_test(file_path):
     df4 = clean_micro_test(df4, 'abnormal')
     df5 = clean_micro_test(df5, 'normal')
 
-    coding1 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-001（分式1）.xlsx', sheetname=2, skiprows=1)
-    coding2 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-002（分式2）.xlsx', sheetname=2, skiprows=1)
-    coding3 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-001（二次根式1）.xlsx', sheetname=2, skiprows=1)
-    coding4 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-002（二次根式2）.xlsx', sheetname=2, skiprows=1)
-    coding5 = pd.read_excel(file_path + '2016-数学-八年级-下学期-单元微测-001（变量之间的关系）.xlsx', sheetname=2, skiprows=1)
+    coding1 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-001（分式1）.xlsx', sheetname=2, skiprows=1, converters={'题目编码':str})
+    coding2 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-002（分式2）.xlsx', sheetname=2, skiprows=1, converters={'题目编码':str})
+    coding3 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-001（二次根式1）.xlsx', sheetname=2, skiprows=1, converters={'题目编码':str})
+    coding4 = pd.read_excel(file_path + '2016-数学-八年级-上学期-单元微测-002（二次根式2）.xlsx', sheetname=2, skiprows=1, converters={'题目编码':str})
+    coding5 = pd.read_excel(file_path + '2016-数学-八年级-下学期-单元微测-001（变量之间的关系）.xlsx', sheetname=2, skiprows=1, converters={'题目编码':str})
 
     coding1, coding2, coding5  = utility.clean_new_form_coding([coding1, coding2, coding5])
     coding3 = utility.clean_old_form_coding(coding3)
     coding4 = utility.clean_old_form_coding(coding4)
+
     return df1, coding1, df2, coding2, df3, coding3, df4, coding4, df5, coding5
+
+def adjust_micro_q_code(coding):
+    copy_df = coding.copy()
+    copy_df['题目编码'] = copy_df['题目编码'].apply(lambda x: '0' + str(x))
+    return copy_df
 
 def read_micro_test(file_path, q_code_subtract_way):
     df = pd.read_excel(file_path, converters={'学号':str, '作答日期':pd.to_datetime})
@@ -172,6 +228,8 @@ def clean_micro_test(df, q_code_subtract_way):
     df.drop('姓名', axis=1, inplace=True)
     df.columns.values[2] = '总分'
     df['总分'] = df['总分'].astype(int)
+    # nan to zero
+    df.fillna(0, inplace=True)
     # 对应编码
     if q_code_subtract_way == 'normal':
         df.columns.values[3:] = list(map(lambda x: x[1:-2], df.columns[3:]))
@@ -267,23 +325,7 @@ def bin_scoring(df_scoring):
     df_scoring['平均得分率binned'] = pd.cut(df_scoring['平均得分率'], bins)
     return df_scoring
 
-def concept_ability(test, code):
-    # print(test.head())
-    # test.columns = pd.MultiIndex.from_product([test.columns, ['C']])
-    df = utility.avg_score(test, code)
-    code_df = code[['核心概念', '学习表现指标代码']]
-    copy_code_df = code_df.copy()
-    copy_code_df['学习表现指标代码'] = code_df['学习表现指标代码'].apply(lambda x: x[0])
-    data = []
-    for i, row in df.iterrows():
-        stu_score = pd.concat([row, copy_code_df], axis=1)
-        stu_score.reset_index(inplace=True)
-        pt = pd.pivot_table(stu_score,columns=['核心概念', '学习表现指标代码'])
-        for row in pt.iteritems():
-            data.append({'教育ID': row[0][0], '核心概念': row[0][1], '学习表现指标代码': row[0][2], '得分率': row[1]})
-    stu_concept_ability = pd.DataFrame(data)
-    print(stu_concept_ability)
-
+# 原始数据和编码表数据合并，以编码表为基表
 def get_stu_concept_ability(test, coding):
     df = utility.avg_score(test, coding)
     code_df = coding[['核心概念', '学习表现指标代码']]
@@ -298,38 +340,133 @@ def get_stu_concept_ability(test, coding):
             data.append({'教育ID': row[0][0], '核心概念': row[0][1], '学习表现指标代码': row[0][2], '得分率': row[1]})
     stu_concept_ability = pd.DataFrame(data)
     stu_concept_ability = stu_concept_ability[['教育ID', '核心概念', '学习表现指标代码', '得分率']]
-    return stu_concept_ability.loc[(stu_concept_ability['教育ID'] == '07073703') | (stu_concept_ability['教育ID'] == '09071100')]
-    # print(stu_concept_ability.loc[stu_concept_ability['教育ID'] == '07073703'])
+    return stu_concept_ability #.loc[(stu_concept_ability['教育ID'] == '09067195') | (stu_concept_ability['教育ID'] == '09067322')]
 
+# 某核心概念一能力要素的历次得分率弄成一行，利用update_score迭代得到最新的得分率
 def update_concept_ability_score(df):
     grouped = df.groupby(['教育ID', '核心概念', '学习表现指标代码'])
-    grouped = grouped.apply(lambda x: update_score(x, 1, 2))
+    grouped = grouped.apply(lambda x: update_score(x, 1, 2, x.iloc[:, 3:].values.flatten().tolist(), 1))
     grouped = grouped[['教育ID', '核心概念', '学习表现指标代码', 'final_score']]
-    print(grouped)
     return grouped
 
-def update_score(x, weight1, weight2):
-    scores = x.iloc[:, 3:].values.flatten().tolist()
+# scores为某能力历史分的数组
+def update_score(x, weight1, weight2, scores, axis):
     for i, score in enumerate(scores):
         if i == 0:
             final_score = score
             continue
 
+        if (pd.isnull(final_score)) & (pd.isnull(score)):
+            continue
+
         w1 = weight1
         w2 = weight2
+
         if pd.isnull(final_score):
             final_score = 0
             w1 = 0
         if pd.isnull(score):
             score = 0
             w2 = 0
-        if (w1 == 0) & (w2 == 0):
-            continue
 
         final_score = (final_score * w1 + score * w2) / (w1 + w2)
 
-    x['final_score'] = final_score
-    return x
+    if axis == 1:
+        x['final_score'] = final_score
+        return x
+    elif axis == 0:
+        return final_score
 
+# 历次总测更新获得各核心概念能力得分率
+def update_concept_ability(test_list):
+    tests_formated = []
+    for obj in test_list:
+        test = obj['test']
+        coding = obj['coding']
+        tests_formated.append(get_stu_concept_ability(test, coding))
+    for i, general in enumerate(tests_formated):
+        if i == 0:
+            df = general
+        else:
+            df = pd.merge(df, general, on=['教育ID', '核心概念', '学习表现指标代码'], how='outer')
+        # print(df)
+    updated_df = update_concept_ability_score(df)
+    updated_df_formated = pd.DataFrame()
+    i = 0
+    for group, frame in updated_df.groupby(['教育ID', '核心概念']):
+        formated_frame = pd.pivot_table(frame, index=['教育ID', '核心概念'], columns=['学习表现指标代码'], values='final_score')
+        if i == 0:
+            updated_df_formated = formated_frame
+        else:
+            updated_df_formated = updated_df_formated.append(formated_frame)
+        i = i + 1
+        #print(type())
+    updated_df_formated.reset_index(inplace=True)
+    return updated_df_formated
+
+# 历次微测更新获得各核心概念能力得分率
+def update_micro_concept_ability(test_list):
+    tests_formated = []
+    for i, obj in enumerate(test_list):
+        test = obj['test']
+        coding = obj['coding']
+        concept = obj['concept']
+        # 计算每道题的平均得分率不需要“总分”这一列
+        test.drop('总分', axis=1, inplace=True)
+        # 计算每道题的平均得分率
+        avg_score_test = utility.avg_score(test, coding)
+        # 暂时不需要索引
+        avg_score_test.reset_index(inplace=True)
+        # 给微测编码表添加核心概念
+        # coding['核心概念'] = concept
+        coding = shorten_ability(coding)
+        # 将题目编码转化成学习表现指标代码
+        avg_score_test.columns.values[2:] = list(map(lambda x: coding.loc[x]['学习表现指标代码'], avg_score_test.columns.values[2:]))
+        avg_score_test['核心概念'] = concept
+        avg_score_test.set_index(['教育ID', '作答日期', '核心概念'], inplace=True)
+        # 计算三个能力的平均得分率
+        avg_score_test = avg_score_test.groupby(avg_score_test.columns, axis=1).mean()
+        tests_formated.append(avg_score_test)
+
+    # 连接所有的微测
+    df = pd.concat(tests_formated)
+    df.reset_index(inplace=True)
+    # print(df[df['教育ID'] == '09067322'])
+    # 同一天做多套微测的学生，其A,B,C能力用均值表示
+    df = df.groupby(['教育ID', '作答日期', '核心概念']).mean()
+    df.reset_index(inplace=True)
+    df.sort_values(['教育ID', '作答日期'], inplace=True)
+    # print(df[df['教育ID'] == '09067322'])
+    # df.to_csv(preparedDataDir + 'examine groupby data.csv')
+    #df = df[(df['教育ID'] == '09067322') | (df['教育ID'] == '09067195')]
+    df.drop('作答日期', axis=1, inplace=True)
+    # 计算历次
+    updated_df = df.groupby(['教育ID', '核心概念']).apply(cal_concept_ability)
+    updated_df = updated_df.loc[:, 'A':'C']
+    updated_df.reset_index(inplace=True)
+    updated_df = updated_df[['教育ID', '核心概念', 'A', 'B', 'C']]
+    return updated_df
+
+# 获取编码表里的核心概念和学习表现指标代码
+def shorten_ability(coding):
+    updated_coding = coding.copy()
+    updated_coding['学习表现指标代码'] = coding['学习表现指标代码'].apply(lambda x: x[0])
+    return updated_coding
+
+# 将题目编码转换成能力
+def replace_q_code_with_concept(general, coding):
+    copy_df = general.copy()
+    copy_df.columns = list(map(lambda x: coding.loc[x]['学习表现指标代码'], general.columns))
+    return copy_df
+
+# 将能力的列组成数组传到update_score方法计算迭代后的能力得分率
+def cal_concept_ability(stu_time_concept_ability_df):
+    if len(stu_time_concept_ability_df) == 1:
+        return stu_time_concept_ability_df
+    df = stu_time_concept_ability_df.tail(1)
+    df['A'] = update_score(None, 1, 2, stu_time_concept_ability_df['A'].tolist(), axis=0)
+    df['B'] = update_score(None, 1, 2, stu_time_concept_ability_df['B'].tolist(), axis=0)
+    df['C'] = update_score(None, 1, 2, stu_time_concept_ability_df['C'].tolist(), axis=0)
+    return df
 
 if __name__ == "__main__": main()
